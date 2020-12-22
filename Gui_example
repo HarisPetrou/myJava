@@ -159,11 +159,8 @@ public class MainPage extends javax.swing.JFrame {
             }
         });
     }
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton exit;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JButton scenario1;
     private javax.swing.JButton scenario2;
-    // End of variables declaration//GEN-END:variables
 }
