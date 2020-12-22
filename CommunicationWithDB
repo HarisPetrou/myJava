@@ -1,0 +1,266 @@
+import javax.swing.JOptionPane;
+import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.sql.*;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+
+public class Database {
+     
+    public static Connection ConnectDb(){
+        try{
+            Class.forName("oracle.jdbc.OracleDriver");
+            //Makes a connection to a specific address via id and password
+            Connection con = DriverManager.getConnection(....); 
+            return con;
+        }catch(ClassNotFoundException | SQLException e){
+            System.out.println("Failed to connect to the database!");
+            JOptionPane.showMessageDialog(null,e);
+        }
+        return null;
+    }  
+    
+    public static Connection InsertAlbumToDb(Album obj){
+        Format formatter = new SimpleDateFormat("dd-MM-yyyy"); //specific date pattern
+        String fixdate = formatter.format(obj.getReleaseDate()); //converts the date to the specific formation
+        //System.out.println(fixdate);
+        try{
+            Statement statement = ConnectDb().createStatement(); //makes a new statement 
+            String insert = "insert into java_albums values('"+obj.getArtist()+ "', '"+obj.getId()+"', '"+obj.getTitle()+"', '"+obj.getStatus()+"', '"+obj.getLanguage()+"', to_date('"+fixdate+"', 'dd-mm-yyyy'), '"+obj.getFormat()+"', "+obj.getTrackCount()+")";
+            //makes a new sql command
+            int check = statement.executeUpdate(insert); //executes the sql command and return an int so we can check if it the command executed successfully
+            if (check>0){
+                System.out.println("Album successfully inserted!");
+            }else{
+                System.out.println("Insert failed!");
+            }
+            statement.close();
+        }catch(SQLException e){
+            System.out.println("Failed to connect to the database!");
+            JOptionPane.showMessageDialog(null,e);
+        }
+        return null;
+    }
+    
+    public static int InsertManyArtistsToDb(ArrayList <Artist> artists){
+        int successfulinserts=0;
+        for(int i=0;  i<artists.size();i++){
+
+            try{
+                Statement statement = ConnectDb().createStatement();
+                String insert = "insert into java_artists values('"+artists.get(i).getId()+ "', '"+artists.get(i).getName()+"', '"+artists.get(i).getCountry()+"', '"+artists.get(i).getCity()+"')";
+                int check = statement.executeUpdate(insert);
+                if (check>0){
+                    successfulinserts++;
+                    //System.out.println("Artist successfully inserted!");
+                }else{
+                    //System.out.println("Insert failed!");
+                }
+                statement.close();
+            }catch(SQLException e){
+                System.out.println("Failed to connect to the database!");
+                JOptionPane.showMessageDialog(null,e);
+            }
+        }
+        //System.out.println(successfulinserts+" artists successfully inserted to the database!");
+        return successfulinserts;
+    }
+    
+    public static int InsertManyAlbumsToDb(ArrayList <Album> albums){
+        int successfulinserts=0;
+        for(int i=0;  i<albums.size();i++){
+            Format formatter = new SimpleDateFormat("dd-MM-yyyy");
+            String fixdate = formatter.format(albums.get(i).getReleaseDate());
+            //System.out.println(fixdate);
+            try{
+                Statement statement = ConnectDb().createStatement();
+                String insert = "insert into java_albums values('"+albums.get(i).getArtist()+ "', '"+albums.get(i).getId()+"', '"+albums.get(i).getTitle()+"', '"+albums.get(i).getStatus()+"', '"+albums.get(i).getLanguage()+"', to_date('"+fixdate+"', 'dd-mm-yyyy'), '"+albums.get(i).getFormat()+"', "+albums.get(i).getTrackCount()+")";
+                int check = statement.executeUpdate(insert);
+                if (check>0){
+                    successfulinserts++;
+                    //System.out.println("Album successfully inserted!");
+                }else{
+                    //System.out.println("Insert failed!");
+                }
+                statement.close();
+            }catch(SQLException e){
+                System.out.println("Failed to connect to the database!");
+                JOptionPane.showMessageDialog(null,e);
+            }
+        }
+        //System.out.println(successfulinserts+" albums successfully inserted to the database!");
+        return successfulinserts;
+    }
+    
+    public static int InsertManyReleasesToDb(ArrayList <Release> releases){
+        int successfulinserts=0;
+        for(int i=0;  i<releases.size();i++){
+            Format formatter = new SimpleDateFormat("dd-MM-yyyy");
+            String fixdate = formatter.format(releases.get(i).getReleaseDate());
+            try{
+                Statement statement = ConnectDb().createStatement();
+                String insert = "insert into java_releases values('"+releases.get(i).getId()+"', '"+releases.get(i).getTitle()+"', '"+releases.get(i).getStatus()+"', '"+releases.get(i).getLanguage()+"', to_date('"+fixdate+"', 'dd-mm-yyyy'), '"+releases.get(i).getFormat()+"', "+releases.get(i).getTrackCount()+")";
+                int check = statement.executeUpdate(insert);
+                if (check>0){
+                    successfulinserts++;
+                    //System.out.println("Release successfully inserted!");
+                }else{
+                    //System.out.println("Insert failed!");
+                }
+                statement.close();
+            }catch(SQLException e){
+                System.out.println("Failed to connect to the database!");
+                JOptionPane.showMessageDialog(null,e);
+            }
+        }
+        //System.out.println(successfulinserts+" releases successfully inserted to the database!");
+        return successfulinserts;
+    }
+    
+    public static ArrayList<Album> GetAlbumsByFormatFromDb(String format){
+        
+        //This method returns albums from the server that has a specific format
+        ArrayList<Album> results = new ArrayList<>();
+            
+           
+            try{
+                Statement statement = ConnectDb().createStatement();
+                ResultSet rs= statement.executeQuery("SELECT * FROM JAVA_ALBUMS WHERE format='"+format+"'");
+                while (rs.next()){
+                      Album a = new Album("Unknown","Unknown","Unknown","Unknown","Unknown",new Date(),"Unknown",0);
+                      a.setArtist(rs.getNString("Artist"));
+                      a.setId(rs.getNString("Id"));
+                      a.setTitle(rs.getNString("Title"));
+                      a.setStatus(rs.getNString("Status"));
+                      a.setLanguage(rs.getNString("Language"));
+                      a.setReleaseDate(rs.getDate("ReleaseDate"));
+                      a.setFormat(rs.getNString("Format"));
+                      a.setTrackCount(rs.getInt("TrackCount"));
+                      results.add(a); 
+                }
+                System.out.println(results.toString());
+                statement.close();
+            }catch(SQLException e){
+                System.out.println("Failed to connect to the database!");
+                JOptionPane.showMessageDialog(null,e);
+            }
+            return results;
+    }
+   
+    public static Album GetAlbumByIdFromDb(String id){
+    
+            Album a = new Album("Unknown","Unknown","Unknown","Unknown","Unknown",new Date(),"Unknown",0);
+            try{
+                Statement statement = ConnectDb().createStatement();
+                ResultSet rs= statement.executeQuery("SELECT * FROM JAVA_ALBUMS WHERE Id='"+id+"'");
+                while (rs.next()){  
+                      a.setArtist(rs.getNString("Artist"));
+                      a.setId(rs.getNString("Id"));
+                      a.setTitle(rs.getNString("Title"));
+                      a.setStatus(rs.getNString("Status"));
+                      a.setLanguage(rs.getNString("Language"));
+                      a.setReleaseDate(rs.getDate("ReleaseDate"));
+                      a.setFormat(rs.getNString("Format"));
+                      a.setTrackCount(rs.getInt("TrackCount"));; 
+                }
+                System.out.println(a.toString());
+                statement.close();
+            }catch(SQLException e){
+                System.out.println("Failed to connect to the database!");
+                JOptionPane.showMessageDialog(null,e);
+            }
+            return a;
+    }
+    
+    public static ArrayList<Album> GetAlbumsByNameFromDb(String name){
+        
+        //This method returns albums from the server that has a specific format
+        ArrayList<Album> results = new ArrayList<>();
+  
+           
+            try{
+                Statement statement = ConnectDb().createStatement();
+                ResultSet rs= statement.executeQuery("SELECT * FROM JAVA_ALBUMS WHERE Title LIKE '%"+name+"%'"); //='"+name+"'"
+                
+                while (rs.next()){
+                      Album a = new Album("Unknown","Unknown","Unknown","Unknown","Unknown",new Date(),"Unknown",0);
+                      a.setArtist(rs.getNString("Artist"));
+                      a.setId(rs.getNString("Id"));
+                      a.setTitle(rs.getNString("Title"));
+                      a.setStatus(rs.getNString("Status"));
+                      a.setLanguage(rs.getNString("Language"));
+                      a.setReleaseDate(rs.getDate("ReleaseDate"));
+                      a.setFormat(rs.getNString("Format"));
+                      a.setTrackCount(rs.getInt("TrackCount"));
+                      results.add(a); 
+                }
+                //System.out.println(results.toString());
+                statement.close();
+            }catch(SQLException e){
+                System.out.println("Failed to connect to the database!");
+                JOptionPane.showMessageDialog(null,e);
+            }
+            return results;
+    }
+
+     public static ArrayList<Artist> GetArtistsByNameFromDb(String name){
+        
+        //This method returns artists from the server that has a specific format
+        ArrayList<Artist> results = new ArrayList<>();
+  
+           
+            try{
+                Statement statement = ConnectDb().createStatement();
+                ResultSet rs= statement.executeQuery("SELECT * FROM JAVA_ARTISTS WHERE Title LIKE '%"+name+"%'"); //='"+name+"'"
+                
+                while (rs.next()){
+                      Artist a = new Artist("Unknown","Unknown","Unknown","Unknown");
+                      a.setId(rs.getNString("Id"));
+                      a.setName(rs.getNString("Name"));
+                      a.setCountry(rs.getNString("Country"));
+                      a.setCity(rs.getNString("City"));
+                      results.add(a); 
+                }
+                //System.out.println(results.toString());
+                statement.close();
+            }catch(SQLException e){
+                System.out.println("Failed to connect to the database!");
+                JOptionPane.showMessageDialog(null,e);
+            }
+            return results;
+    }
+     
+     public static ArrayList<Release> GetReleasesByNameFromDb(String name){
+        
+        //This method returns releases from the server that has a specific format
+        ArrayList<Release> results = new ArrayList<>();
+  
+           
+            try{
+                Statement statement = ConnectDb().createStatement();
+                ResultSet rs= statement.executeQuery("SELECT * FROM JAVA_RELEASES WHERE Title LIKE '%"+name+"%'"); //='"+name+"'"
+                
+                while (rs.next()){
+                      Release r = new Release("Unknown","Unknown","Unknown","Unknown",new Date(),"Unknown",0);
+                      r.setId(rs.getNString("Id"));
+                      r.setTitle(rs.getNString("Title"));
+                      r.setStatus(rs.getNString("Status"));
+                      r.setLanguage(rs.getNString("Language"));
+                      r.setReleaseDate(rs.getDate("ReleaseDate"));
+                      r.setFormat(rs.getNString("Format"));
+                      r.setTrackCount(rs.getInt("TrackCount"));
+                      results.add(r); 
+                }
+                //System.out.println(results.toString());
+                statement.close();
+            }catch(SQLException e){
+                System.out.println("Failed to connect to the database!");
+                JOptionPane.showMessageDialog(null,e);
+            }
+            return results;
+    }
+          
+}
