@@ -1,0 +1,209 @@
+package runmain;
+
+import java.util.HashMap;
+import java.util.InputMismatchException;
+import java.util.Map;
+import java.util.Scanner;
+
+
+public class RunMain  {
+    
+   public static int typeOfTicket(String x){
+       String y="Regular";
+       if(x.equalsIgnoreCase(y)){ //Συγκρίνει το x που δίνουμε με το y και επιστρέφει 1 ή 2 ανάλογα με του τύπο του εισητηρίου. 
+           return 1;
+       }else {
+           return 2;
+       }
+   } 
+   
+public static void starterPackOfTickets(Map<Long,RegularTicket> x){ //Καταχωρούνται στο map τα 3 αρχικά εισητήρια που ζητήσατε 
+    RegularTicket t1=new RegularTicket("weekly");
+    x.put(1122334455L, t1);
+    ReducedTicket t2=new ReducedTicket(1,"John","monthly");
+    x.put(5544332211L, t2);
+    ReducedTicket t3=new ReducedTicket("Kostas",11);
+    t3.setTicketForm("Printed");
+    x.put(1234567890L, t3);
+}
+
+   public static int numberOfRaws (Scanner input,String x) throws IllegalArgumentException, InputMismatchException{
+       System.out.printf("Please select the %s number of raws:%n1%n5%n11%n",x);
+        int number = input.nextInt();
+        return number;
+   }
+
+    
+   public static long telephoneNumber(Scanner tel) throws IllegalArgumentException, InputMismatchException{
+       System.out.println("Please give me your telephone number as key about your ticket."); //Σαν κλειδί στο map θα χρησιμοποιείται το κινητό του κατόχου ώστε να μην είναι πιθανή η ύπαρξη ίδιων κλειδιών
+        long number=tel.nextLong();
+        return number;
+   }
+    
+
+  public static void printMenu(){
+      System.out.printf("Please select 1,2,3 or 4.%n");
+      System.out.printf("1. Buy/issue a new ticket%n2. Τicket renewal%n3. Ticket information%n4. Print the 3 starter tickets from data2018.txt%n5.Εξοδος%n");
+  }
+      
+   public static void main(String[] args) {
+        int choice;
+        Scanner input = new Scanner(System.in);
+        Map<Long,RegularTicket> mymap1= new HashMap<>();
+        starterPackOfTickets(mymap1); 
+      try {
+        while(true){
+           int type=0,numdur=0,numberOfRaws=0;
+            String name="";
+            long telephone=0;
+            printMenu();
+            Scanner dur=new Scanner(System.in);
+            choice=input.nextInt();
+            switch(choice){
+                case 1:
+                    System.out.printf("Please select 1 or 2:%n1.Regular Ticket.%n2.Reduced Ticket.%n");
+                    type=input.nextInt();
+                    if (type != 1 && type != 2){ //Έλεγχος για το αν ο αριθμός ειναι έγκυρος
+                        System.out.printf("Invalid oprtion! Please try again from the beginning.%n");
+                        break;
+                    }
+                    System.out.printf("Please select 1 or 2:%n1.Number of raws.%n2.Duration.%n");
+                    numdur=input.nextInt();
+                    if (numdur != 2 && numdur != 1){
+                        System.out.printf("Invalid oprtion! Please try again from the beginning.%n");
+                        break;
+                    }
+                    if(numdur==1){ //Αν έχουν επιλεγεί οι διαδρομές
+                        numberOfRaws = numberOfRaws(input,"");
+                        if(type==1){ //Αν ο τύπος του εισητηρίου έιναι κανονικός
+                            RegularTicket ticket = new RegularTicket(numberOfRaws); //Δημιουργεί ένα αντικείμενο (εισητήριο)
+                            System.out.printf("The value of your ticket is:%.2f€%n", ticket.getPrice());
+                            if(ticket.payAndTicketForm(input)==2) //Αν επιστρέψει 2 αλλάζει η μορφή του εισητηρίου σε έντυπη αφού ο χρήστης αυτή θα έχει επιλέξει
+                                ticket.setTicketForm("Printed");
+                            telephone=telephoneNumber(input);
+                            mymap1.put(telephone, ticket); //Eκχωρείται το εισητήριο στο map με κλειδί το τηλέφωνο του κατόχου
+                            }else{   //Αν ο τύπος του εισητηρίου είναι μειωμένος
+                            System.out.printf("Please give me your name:%n ");                           
+                            name=dur.nextLine();
+                            ReducedTicket ticket = new ReducedTicket(name,numberOfRaws);
+                            System.out.printf("The value of your ticket is:%.2f€%n", ticket.getPrice());
+                            if(ticket.payAndTicketForm(input)==2)
+                                ticket.setTicketForm("Printed");
+                            telephone=telephoneNumber(input);
+                            mymap1.put(telephone, ticket);
+                            }
+                        }else{ //Αν έχει επιλεγεί η διάρκεια
+                            System.out.printf("Please select the duration (ex. write: daily for Daily ticket).%n90min ticket%nDaily ticket%nWeekly ticket%nMonthly ticket%n");
+                            String duration="";
+                            String s="Monthly";
+                            duration=dur.nextLine();
+                            if(type==1 ){  //Αν ο τύπος του εισητηρίου είναι κανονικος και η διάρκεια οτιδήποτε εκτός από μηνιαία
+                                if(!duration.equalsIgnoreCase(s)){
+                                    RegularTicket ticket = new RegularTicket(duration);
+                                    System.out.printf("The value of your ticket is:%.2f€%n", ticket.getPrice());
+                                    if(ticket.payAndTicketForm(input)==2)
+                                        ticket.setTicketForm("Printed");
+                                    telephone=telephoneNumber(input);
+                                    mymap1.put(telephone, ticket);
+                                    break;
+                                }
+                        }    //Αν ο τύπος του εισητηρίου είναι μειωμένος με οποιαδήποτε διάρκεια ή έιναι κανονικός με μηνιαία διάρκεια
+                            System.out.printf("Please give me your name:%n");
+                            name=dur.nextLine();
+                            ReducedTicket ticket = new ReducedTicket(type,name,duration);
+                            System.out.printf("The value of your ticket is:%.2f€%n", ticket.getPrice());
+                           if(ticket.payAndTicketForm(input)==2)
+                                ticket.setTicketForm("Printed");
+                            telephone=telephoneNumber(input);
+                            mymap1.put(telephone, ticket);
+                        }
+                        break;
+                case 2:
+                    telephone=telephoneNumber(input);
+                    boolean key=mymap1.containsKey(telephone); //Ψάχνει άν το κλειδί (τηλέφωνο) που δώθηκε έχει value στο map
+                    if(key){   //Εαν υπάρχει το κλειδί
+                    String typeTicket= mymap1.get(telephone).getType(); //Επιστρέφει τον αποθηκευμένο τύπο του εισητηρίου (Δεν δίνεται η πιθανότητα να αλλάξει τύπο όπως είναι λογικό)
+                    numberOfRaws=mymap1.get(telephone).getNumberOfRunways(); //Επιστρέφει τον αριθμό των διαδρομών που έχει το εισητήριο
+                    String duration=mymap1.get(telephone).getDuration(); //Επιστρέφει την διάρκεια του εισητηρίου (πχ. ημερήριο,εβδομαδιαίο)
+                    type=typeOfTicket(typeTicket); //Ανάλογα με τον τύπο (κανονικό ή μειωμένο) του εισητηρίου επιστρέφει 1 ή 2 για να χρησιμοποιηθεί παρακάτω 
+                    if(numberOfRaws !=0){ //Αν το εισητήριο ήταν με διαδρομές μπαίνει στο if αφου το numberOfRaws θα είναι 1,5 ή 11
+                        System.out.printf("Your ticket is %s with %d number of raws.%n",typeTicket,numberOfRaws); //Ενημερώνει για το εισητήριο 
+                        int newnumberOfRaws = numberOfRaws(input,"extra"); //Μέθοδο που σε ρωτάει και επιστρέφει τον αριθμό διαδρομών
+                        if(type==1){ //Αν είναι αποθηκευμένο ως εισητήριο κανονικού τύπου
+                            RegularTicket ticket = new RegularTicket(newnumberOfRaws);
+                            System.out.printf("The value of your ticket is:%.2f€%n", ticket.getPrice());
+                            if(ticket.payAndTicketForm(input)==2)
+                                ticket.setTicketForm("Printed");
+                            mymap1.put(telephone, ticket);
+                        }else{ //Αν είναι μειωμένου τύπου
+                            System.out.printf("Please give me your name:%n ");                           
+                            name=dur.nextLine();
+                            ReducedTicket ticket = new ReducedTicket(name,newnumberOfRaws);
+                            System.out.printf("The value of your ticket is:%.2f€%n", ticket.getPrice());
+                           if(ticket.payAndTicketForm(input)==2)
+                                ticket.setTicketForm("Printed");
+                            mymap1.put(telephone, ticket);
+                        }
+                        break;
+                        }    //Ζητείται ο έξτρα χρόνος αφού το numberOfRaws ήταν 0 και έτσι στο εισητήριο ήταν αποθηκευμένος χρόνος και όχι διαδρομές  
+                    System.out.printf("Your ticket is %s with %s duration.%n",typeTicket,duration);
+                    System.out.printf("Please select the extra duration (ex. write: daily for Daily ticket).%n90min duration%nDaily duration%nWeekly duration%nMonthly duration%n");
+                    String s3="Monthly";
+                    duration=dur.nextLine();
+                        if(type==1 ){  //Κανονικό και μη μηνιαίο
+                            if(!duration.equalsIgnoreCase(s3)){
+                                RegularTicket ticket = new RegularTicket(duration);
+                                System.out.printf("The value of your ticket is:%.2f€%n", ticket.getPrice());
+                                if(ticket.payAndTicketForm(input)==2)
+                                    ticket.setTicketForm("Printed");
+                                mymap1.put(telephone, ticket);
+                                break;
+                            }
+                        }   //Μειωμενο ή κανονικό και μηνιαίο
+                            System.out.printf("Please give me your name:%n");
+                            name=dur.nextLine();
+                            ReducedTicket ticket = new ReducedTicket(type,name,duration);
+                            System.out.printf("The value of your ticket is:%.2f€%n", ticket.getPrice());
+                            if(ticket.payAndTicketForm(input)==2)
+                                ticket.setTicketForm("Printed");
+                            mymap1.put(telephone, ticket);
+                     }else{
+                        System.out.printf("There is no ticket associated with that phone number:%n%d%n",telephone); //Όταν το τηλέφωνο δεν αντιστοιχεί σε εισητήριο
+                    }
+                    break;
+                case 3: //Δίνεις τον αριθμό τηλεφώνου και σου εκτυπώνει τα στοιχεία του εισητηρίου, αν αυτό αντιστοιχεί κάπου
+                    telephone=telephoneNumber(input);
+                    boolean key2=mymap1.containsKey(telephone);
+                    if(key2){
+                    numberOfRaws=mymap1.get(telephone).getNumberOfRunways();
+                    if(numberOfRaws !=0){
+                        System.out.printf("Your ticket is: %s,%s,%d,%.2f€%n",mymap1.get(telephone).getTicketForm(),mymap1.get(telephone).getType(),mymap1.get(telephone).getNumberOfRunways(),mymap1.get(telephone).getPrice());
+                        break;
+                    }else{
+                        System.out.printf("Your ticket is: %s,%s,%s,%.2f€ %s%n",mymap1.get(telephone).getTicketForm(),mymap1.get(telephone).getType(),mymap1.get(telephone).getDuration(),mymap1.get(telephone).getPrice(),mymap1.get(telephone).getTicketEndDate());
+                        break;
+                    }
+                    }else{
+                        System.out.printf("There is no ticket associated with that phone number:%n%d%n",telephone);
+                    }
+                    break;
+                case 4: //Εκτυπώνει τα 3 αρχικά εισητήρια που ζητήσατε
+                    System.out.printf("%s,%s,%s,%.2f€ %s%n",mymap1.get(1122334455L).getTicketForm(),mymap1.get(1122334455L).getType(),mymap1.get(1122334455L).getDuration(),mymap1.get(1122334455L).getPrice(),mymap1.get(1122334455L).getTicketEndDate());
+                    System.out.printf("%s,%s,%d,%.2f.€%n",mymap1.get(1234567890L).getTicketForm(),mymap1.get(1234567890L).getType(),mymap1.get(1234567890L).getNumberOfRunways(),mymap1.get(1234567890L).getPrice());
+                    System.out.printf("%s,%s,%s,%.2f€ %s%n",mymap1.get(5544332211L).getTicketForm(),mymap1.get(5544332211L).getType(),mymap1.get(5544332211L).getDuration(),mymap1.get(5544332211L).getPrice(),mymap1.get(5544332211L).getTicketEndDate());
+                    break;
+                case 5:
+                     System.out.println("Bye bye!");
+                     System.exit(0);
+                     break;
+                default:
+                    System.out.println("Your option was wrong!");
+                    break;
+                }
+        }
+      } catch (IllegalArgumentException | InputMismatchException e){
+          System.out.printf("Invalid option or argument.%nExiting Programm..%n");
+          System.exit(0);
+      }   
+    }
+}
